@@ -26,12 +26,10 @@ pip install -r requirements.txt
 
 ### 3. 配置
 
-复制 `.env` 文件，按需求修改：
+复制 `.env.example` 为 `.env`，按需求修改：
 
-```env
-HOST=0.0.0.0
-PORT=60000
-DENOISE_MODEL=iic/speech_zipenhancer_ans_multiloss_16k_base
+```bash
+cp .env.example .env
 ```
 
 ### 4. 启动
@@ -169,7 +167,8 @@ curl -X POST http://127.0.0.1:60000/denoise ^
 ├── app.py               # FastAPI 服务主程序
 ├── log.py               # 日志管理模块
 ├── requirements.txt     # 依赖列表
-├── .env                 # 配置文件
+├── .env                 # 环境配置（不上传）
+├── .env.example         # 环境配置模板
 ├── .gitignore           # Git 忽略规则
 ├── README.md            # 使用文档
 └── logs/                # 日志输出目录
