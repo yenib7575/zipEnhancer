@@ -135,24 +135,3 @@ def _format_size(bytes_size: int) -> str:
         return f"{bytes_size / 1024:.1f}KB"
     else:
         return f"{bytes_size / 1024 / 1024:.1f}MB"
-
-
-if __name__ == "__main__":
-    # 测试日志模块
-    logger = get_logger("test")
-    logger.debug("这是 DEBUG 级别（不会显示）")
-    logger.info("这是 INFO 级别")
-    logger.warning("这是 WARNING 级别")
-    logger.error("这是 ERROR 级别")
-
-    # 模拟异常堆栈
-    try:
-        1 / 0
-    except ZeroDivisionError:
-        logger.exception("发生了除零异常")
-
-    print(f"\n全部日志: {get_log_path()}")
-    print(f"错误日志: {get_error_log_path()}")
-    print("\n所有日志文件:")
-    for log in list_logs():
-        print(f"  {log['name']:35s} {log['size']}")
