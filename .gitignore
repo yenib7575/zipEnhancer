@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 日志
+logs/
+
+# Claude
+.claude/
+
+# 环境配置
+.env
+
+# 音频文件
+voice_input_test/
+voice_output_test/
+
+# IDE
+.vscode/
+.idea/
+
+# 系统
+Thumbs.db
+.DS_Store
+
+# 临时文件
+tmp/
+*.tmp
+server.log
