@@ -1,3 +1,24 @@
+<div align="center">
+
+```
+ ______       _____       _                               
+|__  (_)_ __ | ____|_ __ | |__   __ _ _ __   ___ ___ _ __ 
+  / /| | '_ \|  _| | '_ \| '_ \ / _` | '_ \ / __/ _ \ '__|
+ / /_| | |_) | |___| | | | | | | (_| | | | | (_|  __/ |   
+/____|_| .__/|_____|_| |_|_| |_|\__,_|_| |_|\___\___|_|   
+       |_|                                                
+```
+
+</div>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.10-blue?style=flat-square&logo=python" alt="Python 3.10">
+  <img src="https://img.shields.io/badge/FastAPI-0.115+-teal?style=flat-square&logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?style=flat-square&logo=pytorch" alt="PyTorch">
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License">
+  <img src="https://img.shields.io/badge/ModelScope-达摩院-6240ff?style=flat-square" alt="ModelScope">
+</p>
+
 # ZipEnhancer 语音降噪
 
 基于阿里达摩院 ZipEnhancer 模型的语音降噪 FastAPI 服务。
@@ -167,6 +188,7 @@ curl -X POST http://127.0.0.1:60000/denoise ^
 ├── app.py               # FastAPI 服务主程序
 ├── log.py               # 日志管理模块
 ├── requirements.txt     # 依赖列表
+├── LICENSE              # MIT 开源许可证
 ├── .env                 # 环境配置（不上传）
 ├── .env.example         # 环境配置模板
 ├── .gitignore           # Git 忽略规则
@@ -174,4 +196,7 @@ curl -X POST http://127.0.0.1:60000/denoise ^
 └── logs/                # 日志输出目录
     ├── app/             # 全部日志
     └── error/           # 错误日志
-```
+
+## License
+
+[MIT](LICENSE) © 2024 gao yi jun
