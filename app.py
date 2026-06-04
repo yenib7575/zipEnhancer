@@ -33,6 +33,16 @@ current_model_name = None
 
 
 def load_model(model_name: str):
+    # ZipEnhancer 使用剥离版（纯 PyTorch，方便量化/优化）
+    if model_name == MODEL_ZIPENHANCER:
+        from zipenhancer.standalone import ZipEnhancerStandalone
+        logger.info(f"加载剥离版 ZipEnhancer: {model_name}")
+        start = time.time()
+        ans = ZipEnhancerStandalone(model_name)
+        logger.info(f"模型加载完成，耗时: {time.time() - start:.1f}s")
+        return ans
+
+    # 其他模型走 ModelScope pipeline
     from modelscope.pipelines import pipeline
     from modelscope.utils.constant import Tasks
     logger.info(f"加载模型: {model_name}")

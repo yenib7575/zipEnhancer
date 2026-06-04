@@ -20,15 +20,24 @@
 </p>
 
 
-基于阿里达摩院 **ZipEnhancer** 模型的语音降噪服务，提供高性能的音频降噪 API。
+将阿里达摩院 **ZipEnhancer** 模型从 ModelScope pipeline 中剥离，用纯 PyTorch 重新实现推理流程，并封装为高性能 FastAPI 降噪服务。
 
-**它能做什么？**
+### 做了什么
+
+- **模型剥离** — 从 ModelScope 黑盒 pipeline 中提取出 ZipEnhancer，用原生 PyTorch 加载权重推理，不再依赖 pipeline 封装
+- **FP16 半精度推理** — 仅模型计算部分使用 FP16，STFT/iSTFT 保持 FP32 避免 cuFFT 精度问题，显存占用降低 ~40%
+- **长音频分段** — 4s 滑动窗口 + 75% 重叠的 overlap-add 策略，支持任意时长音频，彻底解决 CUDA OOM
+- **多模型切换** — 同时支持 ZipEnhancer（轻量）、FRCRN（实时）、MossFormer2（高质）三种模型
+- **声道/位深保持** — 立体声输入 → 立体声输出，32-bit float / 16-bit PCM 自动适配
+
+### 它能做什么？
+
 - 清除录音中的**环境噪声**（空调声、风扇声、键盘声、街道噪音等）
 - 支持**单文件**和**批量处理**两种模式
 - 多种降噪模型**一键切换**
-- GPU 加速，实时率可达 **20x 以上**
+- GPU 加速，实时率可达 **20x 以上**（RTX 4090）
 
-只需一行命令即可启动服务，适合集成到语音处理流程、会议录音后处理、音频预处理管道等场景。
+无需 ModelScope pipeline 黑盒，一行命令启动服务，适合集成到语音处理流程、会议录音后处理、音频预处理管道等场景。
 
 ## 快速开始
 
@@ -222,15 +231,34 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 ## 项目结构
 
 ```
-├── app.py               # FastAPI 服务主程序
-├── log.py               # 日志管理模块
-├── requirements.txt     # 依赖列表
-├── LICENSE              # MIT 开源许可证
-├── .env                 # 环境配置（不上传）
-├── .env.example         # 环境配置模板
-├── .gitignore           # Git 忽略规则
-├── README.md            # 使用文档
-└── logs/                # 日志输出目录
-    ├── app/             # 全部日志
-    └── error/           # 错误日志
+├── app.py                 # FastAPI 服务主程序
+├── log.py                 # 日志管理模块
+├── zipenhancer/           # 降噪核心包
+│   ├── __init__.py
+│   ├── standalone.py      # 剥离版推理（纯 PyTorch）
+│   ├── models/            # 模型架构
+│   │   ├── zipenhancer.py
+│   │   └── layers/
+│   └── configs/
+│       └── configuration.json
+├── images/                # README 截图
+├── test/                  # 测试音频
+├── requirements.txt       # 依赖列表
+├── LICENSE                # MIT 开源许可证
+├── .env                   # 环境配置（不上传）
+├── .env.example           # 环境配置模板
+├── .gitignore             # Git 忽略规则
+├── README.md              # 使用文档
+└── logs/                  # 日志输出目录
+    ├── app/               # 全部日志
+    └── error/             # 错误日志
 ```
+
+## Credits
+
+- 降噪模型：[阿里达摩院 ZipEnhancer](https://modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base)（Apache 2.0）
+- 模型提取参考：[boreas-l/zipEnhancer](https://github.com/boreas-l/zipEnhancer)
+
+## License
+
+[MIT](LICENSE) © 2024 gao yi jun
