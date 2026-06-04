@@ -233,8 +233,4 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 └── logs/                # 日志输出目录
     ├── app/             # 全部日志
     └── error/           # 错误日志
-
-## License
-
-[MIT](LICENSE) © 2024 gao yi jun
-
+```
