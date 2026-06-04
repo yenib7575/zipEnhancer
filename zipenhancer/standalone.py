@@ -1,7 +1,3 @@
-"""
-ZipEnhancer 剥离版 — 16kHz 原生采样率
-"""
-
 import json
 import os
 import time

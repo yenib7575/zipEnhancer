@@ -20,7 +20,6 @@
 </p>
 
 
-将阿里达摩院 **ZipEnhancer** 模型从 ModelScope pipeline 中剥离，用纯 PyTorch 重新实现推理流程，并封装为高性能 FastAPI 降噪服务。
 
 ### 做了什么
 
