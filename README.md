@@ -19,7 +19,6 @@
   <img src="https://img.shields.io/badge/ModelScope-达摩院-6240ff?style=flat-square" alt="ModelScope">
 </p>
 
-# ZipEnhancer 语音降噪
 
 基于阿里达摩院 ZipEnhancer 模型的语音降噪 FastAPI 服务。
 
@@ -56,7 +55,7 @@ cp .env.example .env
 ### 4. 启动
 
 ```bash
-uvicorn app:app --host 0.0.0.0 --port 60000
+uvicorn app:app --host 0.0.0.0 --port 8765
 ```
 
 ## API 接口
@@ -64,21 +63,25 @@ uvicorn app:app --host 0.0.0.0 --port 60000
 ### 健康检查
 
 ```bash
-curl http://127.0.0.1:60000/health
+curl http://127.0.0.1:8765/health
 ```
+
+![健康检查](images/健康检查.png)
 
 ### 查看可用模型
 
 ```bash
-curl http://127.0.0.1:60000/models
+curl http://127.0.0.1:8765/models
 ```
+
+![查看可用模型](images/查看可用模型.png)
 
 ### 语音降噪（单个文件）
 
 上传音频文件，指定输出文件夹，降噪后的文件自动保存到该目录。
 
 ```bash
-curl -X POST http://127.0.0.1:60000/denoise ^
+curl -X POST http://127.0.0.1:8765/denoise ^
   -F "file=@input.wav" ^
   -F "output_dir=./output"
 ```
@@ -109,12 +112,14 @@ curl -X POST http://127.0.0.1:60000/denoise ^
 }
 ```
 
+![音频降噪](images/音频降噪.png)
+
 ### 语音降噪（批量处理）
 
 扫描输入文件夹中的所有音频文件，逐个降噪并保存到输出文件夹。
 
 ```bash
-curl -X POST http://127.0.0.1:60000/denoise/batch ^
+curl -X POST http://127.0.0.1:8765/denoise/batch ^
   -F "input_dir=./input_folder" ^
   -F "output_dir=./output_folder"
 ```
@@ -168,7 +173,7 @@ curl -X POST http://127.0.0.1:60000/denoise/batch ^
 ### 切换模型
 
 ```bash
-curl -X POST http://127.0.0.1:60000/denoise ^
+curl -X POST http://127.0.0.1:8765/denoise ^
   -F "file=@input.wav" ^
   -F "output_dir=./output" ^
   -F "model=iic/speech_frcrn_ans_cirm_16k"
