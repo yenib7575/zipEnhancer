@@ -99,7 +99,9 @@ curl http://127.0.0.1:8765/models
 ```bash
 curl -X POST http://127.0.0.1:8765/denoise ^
   -F "file=@input.wav" ^
-  -F "output_dir=./output"
+  -F "output_dir=./output" ^
+  -F "output_format=mp3" ^
+  -F "bitrate=192k"
 ```
 
 **参数说明：**
@@ -111,6 +113,9 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 | `model` | 否 | 模型名称（默认 .env 中配置） |
 | `normalize` | 否 | 是否自动音量归一化（默认 true） |
 | `target_sr` | 否 | 输出采样率，0=保持原始采样率（默认 0） |
+| `output_format` | 否 | 输出格式: wav / flac / mp3 / ogg（默认 wav） |
+| `bitrate` | 否 | 比特率，仅 mp3/ogg，如 "192k" |
+| `compression_level` | 否 | 压缩级别，仅 flac (0-8) |
 
 **返回结果：**
 
@@ -119,8 +124,12 @@ curl -X POST http://127.0.0.1:8765/denoise ^
   "code": 0,
   "message": "success",
   "data": {
-    "output_path": "./output/input_denoised.wav",
+    "output_path": "./output/input_denoised.mp3",
     "sample_rate": 48000,
+    "output_format": "mp3",
+    "output_subtype": "mp3_mf",
+    "bitrate": "192k",
+    "compression": null,
     "processing_time": "0.62s",
     "real_time_factor": "22.0x",
     "model": "iic/speech_zipenhancer_ans_multiloss_16k_base"
@@ -149,6 +158,9 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
 | `model` | 否 | 模型名称（默认 .env 中配置） |
 | `normalize` | 否 | 是否自动音量归一化（默认 true） |
 | `target_sr` | 否 | 输出采样率，0=保持原始采样率（默认 0） |
+| `output_format` | 否 | 输出格式: wav / flac / mp3 / ogg（默认 wav） |
+| `bitrate` | 否 | 比特率，仅 mp3/ogg，如 "192k" |
+| `compression_level` | 否 | 压缩级别，仅 flac (0-8) |
 
 **返回结果：**
 
@@ -164,11 +176,15 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
     "failed": 0,
     "total_time": "5.23s",
     "model": "iic/speech_zipenhancer_ans_multiloss_16k_base",
+    "output_format": "flac",
     "results": [
       {
         "filename": "audio1.wav",
-        "output_path": "./output_folder/audio1_denoised.wav",
+        "output_path": "./output_folder/audio1_denoised.flac",
         "sample_rate": 48000,
+        "output_format": "flac",
+        "output_subtype": "PCM_16",
+        "compression": 5,
         "processing_time": "0.52s",
         "real_time_factor": "28.0x",
         "status": "success"
@@ -184,7 +200,20 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
 - **采样率**：默认与原始文件一致（传 `target_sr` 可覆盖）
 - **声道数**：立体声输入 → 立体声输出，单声道输入 → 单声道输出
 - **位深**：32-bit float 输入 → 32-bit float 输出，16-bit → 16-bit
-- **格式**：WAV 输入保持原始位深，MP3 等其他格式转为 16-bit PCM WAV
+- **输出格式**：可通过 `output_format` 参数选择
+
+#### 格式支持矩阵
+
+| 格式 | 编码选项 | 压缩率参考 | 依赖 |
+|------|---------|-----------|------|
+| WAV | PCM_16 / PCM_24 / PCM_32 / FLOAT | 无损（基准） | soundfile |
+| FLAC | PCM_16 / PCM_24，compression 0-8 | ~40-60% | soundfile |
+| MP3 | 32-320 kbps | ~15-25% | ffmpeg |
+| OGG Opus | 6-510 kbps | ~15-25% | ffmpeg |
+
+> 压缩率参考基于 48kHz 16-bit 单声道音频，实际因内容而异。
+> MP3/OGG 依赖 ffmpeg，系统未安装时自动降级为 WAV 并记日志。
+> FLAC 输出时 FLOAT/DOUBLE 编码自动降级为 PCM_24，PCM_32 降级为 PCM_16。
 
 ### 切换模型
 
@@ -213,11 +242,11 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 - [x] 自定义输出采样率
 - [x] 声道/位深保持
 - [x] FP16 半精度推理
+- [x] 输出格式选择（WAV / MP3 / FLAC / OGG，编码参数可配）
 
 ### 计划中
 
 #### P0 — 短期（5-8 周）
-- [ ] 输出格式选择（WAV / MP3 / FLAC / OGG，编码参数可配）
 - [ ] 输入音频信息预览（波形峰值、LUFS 响度、削波检测、完整性校验）
 - [ ] 降噪强度控制（频域 Dry/Wet Mix，0~100% 可调）
 
@@ -254,6 +283,7 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 ├── log.py                 # 日志管理模块
 ├── zipenhancer/           # 降噪核心包
 │   ├── __init__.py
+│   ├── codec.py           # 音频编码模块（WAV/FLAC/MP3/OGG）
 │   ├── standalone.py      # 剥离版推理（纯 PyTorch）
 │   ├── models/            # 模型架构
 │   │   ├── zipenhancer.py

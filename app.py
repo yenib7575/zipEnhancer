@@ -10,6 +10,7 @@ from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from dotenv import load_dotenv
 
 from log import get_logger
+from zipenhancer.codec import write as codec_write, FORMATS, get_supported_formats
 
 # 支持的音频格式
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".flac", ".ogg", ".aac", ".wma"}
@@ -33,10 +34,10 @@ current_model_name = None
 
 
 def load_model(model_name: str):
-    # ZipEnhancer 使用剥离版（纯 PyTorch，方便量化/优化）
+    # 使用剥离后的ZipEnhancer
     if model_name == MODEL_ZIPENHANCER:
         from zipenhancer.standalone import ZipEnhancerStandalone
-        logger.info(f"加载剥离版 ZipEnhancer: {model_name}")
+        logger.info(f"加载剥离后的 ZipEnhancer: {model_name}")
         start = time.time()
         ans = ZipEnhancerStandalone(model_name)
         logger.info(f"模型加载完成，耗时: {time.time() - start:.1f}s")
@@ -92,6 +93,7 @@ async def list_models():
             {"id": MODEL_MOSSFORMER2, "name": "MossFormer2", "description": "高质量降噪 (ClearerVoice)"},
         ],
         "current": current_model_name,
+        "output_formats": get_supported_formats(),
     }
 
 
@@ -109,9 +111,23 @@ def _ensure_model(model: str):
         raise HTTPException(500, "模型未加载")
 
 
-def _process_file(in_path: str, out_path: str, model: str, normalize: bool, output_sr: int = 0) -> tuple:
-    """处理单个音频文件，返回 (耗时, 时长)"""
+def _process_file(
+    in_path: str,
+    out_path: str,
+    model: str,
+    normalize: bool,
+    output_sr: int = 0,
+    output_format: str = "wav",
+    bitrate: str = None,
+    compression_level: int = None,
+) -> tuple:
+    """处理单个音频文件，返回 (耗时, 时长, 采样率, 格式信息)"""
     _ensure_model(model)
+
+    # 校验输出格式
+    if output_format not in FORMATS:
+        from zipenhancer.codec import FormatNotSupported
+        raise FormatNotSupported(output_format)
 
     # 模型固定使用 16kHz 处理
     process_sr = 16000
@@ -162,13 +178,28 @@ def _process_file(in_path: str, out_path: str, model: str, normalize: bool, outp
         if orig_channels > 1:
             denoised = np.column_stack([denoised] * orig_channels)
 
+        # 使用 codec 写入（WAV/FLAC 继承原始位深，MP3/OGG 用默认编码）
         os.makedirs(Path(out_path).parent, exist_ok=True)
-        sf.write(out_path, denoised, output_sr, subtype=orig_subtype)
+        sub = orig_subtype if output_format in ("wav", "flac") else None
+        result = codec_write(
+            out_path, denoised, output_sr,
+            fmt=output_format,
+            subtype=sub,
+            bitrate=bitrate,
+            compression=compression_level,
+            atomic=True,
+        )
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
-    return proc_time, duration, output_sr
+    fmt_info = {
+        "output_format": result.format,
+        "output_subtype": result.subtype,
+        "bitrate": result.bitrate,
+        "compression": result.compression,
+    }
+    return proc_time, duration, output_sr, fmt_info
 
 
 @app.post("/denoise")
@@ -178,16 +209,22 @@ async def denoise(
     model: str = Form(DEFAULT_MODEL, description="模型名称"),
     normalize: bool = Form(True, description="是否音量归一化"),
     target_sr: int = Form(0, description="输出采样率，0=保持原始采样率"),
+    output_format: str = Form("wav", description="输出格式: wav/flac/mp3/ogg"),
+    bitrate: str = Form(None, description="比特率 (mp3/ogg)，如 192k"),
+    compression_level: int = Form(None, ge=0, le=8, description="压缩级别 (flac 0-8)"),
 ):
     """上传单个音频 → 降噪 → 保存 → 返回 JSON"""
     if not file.filename:
         raise HTTPException(400, "文件名为空")
 
-    stem = Path(file.filename).stem
-    suffix = Path(file.filename).suffix or ".wav"
-    output_path = os.path.join(output_dir, f"{stem}_denoised.wav")
+    if output_format not in FORMATS:
+        raise HTTPException(400, f"不支持的输出格式: {output_format}")
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_in:
+    stem = Path(file.filename).stem
+    ext = FORMATS[output_format].ext
+    output_path = os.path.join(output_dir, f"{stem}_denoised{ext}")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix or ".wav") as tmp_in:
         content = await file.read()
         if len(content) == 0:
             raise HTTPException(400, "上传文件为空")
@@ -195,8 +232,11 @@ async def denoise(
         in_path = tmp_in.name
 
     try:
-        logger.info(f"接收文件: {file.filename} ({len(content)} bytes)")
-        proc_time, duration, output_sr = _process_file(in_path, output_path, model, normalize, target_sr)
+        logger.info(f"接收文件: {file.filename} ({len(content)} bytes) [format={output_format}]")
+        proc_time, duration, output_sr, fmt_info = _process_file(
+            in_path, output_path, model, normalize, target_sr,
+            output_format, bitrate, compression_level,
+        )
         logger.info(f"降噪完成: {proc_time:.2f}s (x{duration/proc_time:.1f} 实时比)")
     except HTTPException:
         raise
@@ -212,6 +252,10 @@ async def denoise(
         "data": {
             "output_path": output_path,
             "sample_rate": output_sr,
+            "output_format": fmt_info["output_format"],
+            "output_subtype": fmt_info["output_subtype"],
+            "bitrate": fmt_info.get("bitrate"),
+            "compression": fmt_info.get("compression"),
             "processing_time": f"{proc_time:.2f}s",
             "real_time_factor": f"{duration/proc_time:.1f}x",
             "model": current_model_name,
@@ -226,10 +270,16 @@ async def denoise_batch(
     model: str = Form(DEFAULT_MODEL, description="模型名称"),
     normalize: bool = Form(True, description="是否音量归一化"),
     target_sr: int = Form(0, description="输出采样率，0=保持原始采样率"),
+    output_format: str = Form("wav", description="输出格式: wav/flac/mp3/ogg"),
+    bitrate: str = Form(None, description="比特率 (mp3/ogg)，如 192k"),
+    compression_level: int = Form(None, ge=0, le=8, description="压缩级别 (flac 0-8)"),
 ):
     """批量降噪：扫描输入文件夹所有音频，逐个处理"""
     if not os.path.isdir(input_dir):
         raise HTTPException(400, f"输入文件夹不存在: {input_dir}")
+
+    if output_format not in FORMATS:
+        raise HTTPException(400, f"不支持的输出格式: {output_format}")
 
     # 扫描音频文件
     files = []
@@ -241,7 +291,8 @@ async def denoise_batch(
     if not files:
         raise HTTPException(400, f"输入文件夹中没有找到音频文件: {input_dir}")
 
-    logger.info(f"批量降噪: {input_dir} → {output_dir}，共 {len(files)} 个文件")
+    ext = FORMATS[output_format].ext
+    logger.info(f"批量降噪: {input_dir} → {output_dir}，共 {len(files)} 个文件 [format={output_format}]")
     os.makedirs(output_dir, exist_ok=True)
 
     results = []
@@ -252,15 +303,22 @@ async def denoise_batch(
     for filename in files:
         in_path = os.path.join(input_dir, filename)
         stem = Path(filename).stem
-        out_path = os.path.join(output_dir, f"{stem}_denoised.wav")
+        out_path = os.path.join(output_dir, f"{stem}_denoised{ext}")
 
         logger.info(f"处理 ({success + failed + 1}/{len(files)}): {filename}")
         try:
-            proc_time, duration, output_sr = _process_file(in_path, out_path, model, normalize, target_sr)
+            proc_time, duration, output_sr, fmt_info = _process_file(
+                in_path, out_path, model, normalize, target_sr,
+                output_format, bitrate, compression_level,
+            )
             results.append({
                 "filename": filename,
                 "output_path": out_path,
                 "sample_rate": output_sr,
+                "output_format": fmt_info["output_format"],
+                "output_subtype": fmt_info["output_subtype"],
+                "bitrate": fmt_info.get("bitrate"),
+                "compression": fmt_info.get("compression"),
                 "processing_time": f"{proc_time:.2f}s",
                 "real_time_factor": f"{duration/proc_time:.1f}x",
                 "status": "success",
@@ -288,6 +346,7 @@ async def denoise_batch(
             "failed": failed,
             "total_time": f"{total_time:.2f}s",
             "model": current_model_name,
+            "output_format": output_format,
             "results": results,
         },
     }

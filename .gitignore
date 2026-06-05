@@ -34,6 +34,10 @@ server.log
 
 # 测试文档
 test
+tests/
+
+# 输出文件
+output/
 
 # 本地自用文档
 上传命令.txt
