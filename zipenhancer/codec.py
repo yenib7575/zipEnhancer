@@ -17,7 +17,7 @@ logger = get_logger("zipenhancer.codec")
 class FormatConfig:
     """格式能力定义"""
     name: str                     # 唯一标识符: wav / flac / mp3 / ogg
-    description: str              # 人类可读描述
+    description: str              # API接口中展示的描述
     ext: str                      # 文件扩展名（含点）
     subtypes: tuple               # 有效 subtype 列表，空 tuple 表示由 codec 名决定
     default_subtype: str          # 默认 subtype
@@ -76,14 +76,19 @@ FORMATS = {
 
 
 class CodecError(Exception):
-    """编解码错误基类"""
     def __init__(self, message: str, hint: str = ""):
+        """编解码错误基类
+
+        Args:
+            message (str): 错误描述
+            hint (str, optional): 修复提示. Defaults to "".
+        """
         self.hint = hint
         super().__init__(message if not hint else f"{message}（{hint}）")
 
 
 class FormatNotSupported(CodecError):
-    """不支持的格式"""
+    """不支持的输出格式"""
     def __init__(self, fmt: str):
         super().__init__(
             f"不支持的输出格式: {fmt}",
@@ -139,31 +144,23 @@ def write(
     compression: Optional[int] = None,
     atomic: bool = True,
 ) -> WriteResult:
-    """
-    编码并写入音频文件。
+    """_summary_
 
-    参数
-    ----
-    path : str
-        输出路径（扩展名可不匹配 fmt，以 fmt 为准）
-    data : np.ndarray
-        音频数据，shape [samples] 或 [samples, channels]
-    sample_rate : int
-        采样率
-    fmt : str
-        输出格式，wav / flac / mp3 / ogg
-    subtype : str, optional
-        编码子类型，默认用格式的 default_subtype
-    bitrate : str, optional
-        比特率 e.g. "192k"，仅 mp3/ogg
-    compression : int, optional
-        压缩级别，仅 flac (0-8)
-    atomic : bool
-        是否原子写入（默认 True）
+    Args:
+        path (str): 输出文件路径
+        data (np.ndarray): 音频数据
+        sample_rate (int): 采样率
+        fmt (str, optional): 输出格式. Defaults to "wav".
+        subtype (Optional[str], optional): 编码子类型. Defaults to None.
+        bitrate (Optional[str], optional): 比特率. Defaults to None.
+        compression (Optional[int], optional): 压缩级别. Defaults to None.
+        atomic (bool, optional): 是否原子写入. Defaults to True.
 
-    返回
-    ----
-    WriteResult
+    Raises:
+        FormatNotSupported: _description_
+
+    Returns:
+        WriteResult: WriteResult
     """
     cfg = FORMATS.get(fmt)
     if cfg is None:
