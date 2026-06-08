@@ -88,7 +88,7 @@ class ZipEnhancerStandalone:
         # [T] → [1, T]
         ndarray = audio_arr.astype(np.float32).reshape(1, -1)
 
-        # 2. 分段参数（4s 窗口，75% 重叠）
+        # 2. 分段参数（4s 窗口，步进 75%，25% 重叠）
         window = self.SAMPLE_RATE * 4       # 64000 samples
         stride = int(window * 0.75)         # 48000
         do_segment = nsamples > window * 2  # >8s 开始分段（防爆显存）

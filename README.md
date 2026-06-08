@@ -212,8 +212,8 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
 | OGG Opus | 6-510 kbps | ~15-25% | ffmpeg |
 
 > 压缩率参考基于 48kHz 16-bit 单声道音频，实际因内容而异。
-> MP3/OGG 依赖 ffmpeg，系统未安装时自动降级为 WAV 并记日志。
-> FLAC 输出时 FLOAT/DOUBLE 编码自动降级为 PCM_24，PCM_32 降级为 PCM_16。
+> MP3/OGG 依赖 ffmpeg，系统未安装时将返回错误。
+> FLAC 输出时不支持的编码（FLOAT/DOUBLE/PCM_32）自动降级为 PCM_16。
 
 ### 切换模型
 
@@ -282,9 +282,11 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 ├── app.py                 # FastAPI 服务主程序
 ├── log.py                 # 日志管理模块
 ├── API.md                 # API 接口文档（含 curl 测试示例）
+├── pyproject.toml          # Python 包配置
 ├── zipenhancer/           # 降噪核心包
 │   ├── __init__.py
 │   ├── codec.py           # 音频编码模块（WAV/FLAC/MP3/OGG）
+│   ├── denoise.py         # 降噪核心函数
 │   ├── standalone.py      # 剥离版推理（纯 PyTorch）
 │   ├── models/            # 模型架构
 │   │   ├── zipenhancer.py
@@ -297,6 +299,9 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │       ├── configuration.json
 │       └── train_config.json
 ├── tests/                 # 测试
+│   ├── conftest.py
+│   ├── test_codec.py
+│   ├── test_denoise.py
 │   ├── generate_test_data.py
 │   └── audio/             # 测试音频文件
 ├── images/                # README 截图

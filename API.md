@@ -96,18 +96,11 @@ curl -X POST http://localhost:8765/denoise \
 ### 各格式测试示例
 
 ```bash
-# WAV（默认）
+# WAV（默认，16-bit PCM）
 curl -X POST http://localhost:8765/denoise \
   -F "file=@tests/audio/test_mono.wav" \
   -F "output_dir=./output" \
   -F "output_format=wav"
-
-# WAV 32-bit float
-curl -X POST http://localhost:8765/denoise \
-  -F "file=@tests/audio/test_mono.wav" \
-  -F "output_dir=./output" \
-  -F "output_format=wav" \
-  -F "subtype=FLOAT"
 
 # FLAC（默认压缩）
 curl -X POST http://localhost:8765/denoise \
