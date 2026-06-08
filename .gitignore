@@ -32,9 +32,10 @@ tmp/
 server.log
 
 
-# 测试文档
+# 测试文件夹 + 测试输出文件夹
 test
 tests/
+test_output/
 
 # 输出文件
 output/
