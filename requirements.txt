@@ -7,6 +7,5 @@ soundfile
 numpy
 modelscope[framework]
 torch
-torchaudio
 # GPU 加速请用以下命令安装 CUDA 版 PyTorch:
 # pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124

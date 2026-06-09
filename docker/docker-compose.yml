@@ -1,0 +1,18 @@
+services:
+  zipenhancer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "60000:60000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=60000
+      - LOG_LEVEL=INFO
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

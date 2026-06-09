@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 日志
+logs/
+server.log
+
+# 音频测试文件
+voice_input_test/
+voice_output_test/
+test/
+tests/
+test_output/
+
+# 环境（Dockerfile 会主动生成 .env）
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# 系统
+Thumbs.db
+.DS_Store
+
+# 临时文件
+tmp/
+*.tmp
+output/
+
+# Git
+.git/
+.gitignore
+
+# 文档
+images/
+docker/
