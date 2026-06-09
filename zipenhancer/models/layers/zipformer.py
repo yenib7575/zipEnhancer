@@ -15,9 +15,9 @@ from torch import Tensor, nn
 from .scaling import Identity
 from .scaling import ScaledLinear
 from .scaling import (ActivationDropoutAndLinear, BiasNorm,
-                      ChunkCausalDepthwiseConv1d, Dropout2, FloatLike,
+                      Dropout2, FloatLike,
                       ScheduledFloat, limit_param_value,
-                      penalize_abs_values_gt, softmax)
+                      softmax)
 
 
 class Zipformer2EncoderLayer(nn.Module):
@@ -693,21 +693,6 @@ class RelPositionMultiheadAttentionWeights(nn.Module):
 
         if torch.jit.is_scripting() or torch.jit.is_tracing():
             pass
-        elif self.training and random.random() < 0.1:
-            # This is a harder way of limiting the attention scores to not be
-            # too large.  It incurs a penalty if any of them has an absolute
-            # value greater than 50.0.  this should be outside the normal range
-            # of the attention scores.  We use this mechanism instead of, say,
-            # something added to the loss function involving the entropy,
-            # because once the entropy gets very small gradients through the
-            # softmax can become very small, and we'd get zero derivatives.  The
-            # choices of 1.0e-04 as the scale on the penalty makes this
-            # mechanism vulnerable to the absolute scale of the loss function,
-            # but we view this as a failsafe to avoid "implausible" parameter
-            # values rather than a regularization method that should be active
-            # under normal circumstances.
-            attn_scores = penalize_abs_values_gt(
-                attn_scores, limit=25.0, penalty=1.0e-04, name=self.name)
 
         assert attn_scores.shape == (num_heads, batch_size, seq_len, seq_len)
 
@@ -967,16 +952,13 @@ class ConvolutionModule(nn.Module):
 
         assert kernel_size % 2 == 1
 
-        self.depthwise_conv = (
-            ChunkCausalDepthwiseConv1d(
-                channels=bottleneck_dim, kernel_size=kernel_size)
-            if causal else nn.Conv1d(
-                in_channels=bottleneck_dim,
-                out_channels=bottleneck_dim,
-                groups=bottleneck_dim,
-                kernel_size=kernel_size,
-                padding=kernel_size // 2,
-            ))
+        self.depthwise_conv = nn.Conv1d(
+            in_channels=bottleneck_dim,
+            out_channels=bottleneck_dim,
+            groups=bottleneck_dim,
+            kernel_size=kernel_size,
+            padding=kernel_size // 2,
+        )
 
         self.balancer2 = Identity()
 
