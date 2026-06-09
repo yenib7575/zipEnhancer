@@ -296,8 +296,7 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │   │       ├── zipenhancer_layer.py
 │   │       └── zipformer.py
 │   └── configs/
-│       ├── configuration.json
-│       └── train_config.json
+│       └── configuration.json
 ├── tests/                 # 测试
 │   ├── conftest.py
 │   ├── test_codec.py
