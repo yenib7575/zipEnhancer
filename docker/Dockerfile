@@ -38,6 +38,6 @@ RUN find /usr/local/lib/python3.10 -name "*.pyc" -delete
 ENV LOG_DIR=/tmp/logs
 
 # 服务端口
-EXPOSE 60000
+EXPOSE 8765
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "60000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8765"]

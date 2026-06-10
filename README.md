@@ -12,11 +12,12 @@
 </div>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-3.10-blue?style=flat-square&logo=python" alt="Python 3.10">
-  <img src="https://img.shields.io/badge/FastAPI-0.115+-teal?style=flat-square&logo=fastapi" alt="FastAPI">
-  <img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c?style=flat-square&logo=pytorch" alt="PyTorch">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License">
-  <img src="https://img.shields.io/badge/ModelScope-达摩院-6240ff?style=flat-square" alt="ModelScope">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10-blue" alt="Python 3.10"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115+-teal" alt="FastAPI"></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c" alt="PyTorch"></a>
+  <a href="https://github.com/jiuhua/zipEnhancer/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
+  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-支持-2496ed" alt="Docker"></a>
+  <a href="https://modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base"><img src="https://img.shields.io/badge/ModelScope-达摩院-6240ff" alt="ModelScope"></a>
 </p>
 
 
@@ -40,14 +41,16 @@
 
 ## 快速开始
 
-### 1. 创建虚拟环境
+### 方式一：手动部署
+
+**1. 创建虚拟环境**
 
 ```bash
 conda create -n zipenhancer python=3.10 -y
 conda activate zipenhancer
 ```
 
-### 2. 安装依赖
+**2. 安装依赖**
 
 ```bash
 pip install -r requirements.txt
@@ -60,7 +63,7 @@ pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
 pip install -r requirements.txt
 ```
 
-### 3. 配置
+**3. 配置**
 
 复制 `.env.example` 为 `.env`，按需求修改：
 
@@ -68,11 +71,30 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-### 4. 启动
+**4. 启动**
 
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 8765
 ```
+
+### 方式二：Docker 部署
+
+**1. 前置条件**
+
+安装 [Docker](https://docs.docker.com/engine/install/) 和 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)。
+
+**2. 构建并启动**
+
+```bash
+# 从 docker/ 目录启动
+cd docker
+docker compose up -d
+
+# 或从项目根目录直接运行
+docker run --gpus all -p 8765:8765 zipenhancer:latest
+```
+
+所有依赖和模型已在构建时下载，启动即用，无需额外等待。
 
 ## API 接口
 

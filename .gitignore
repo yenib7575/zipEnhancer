@@ -37,14 +37,13 @@ test
 tests/
 test_output/
 .pytest_cache
-
-# 输出文件
 output/
+
 
 # 本地自用文档
 上传命令.txt
 项目计划.txt
 
-# docker
+# docker(持续维护)
 # docker
 # .dockerignore

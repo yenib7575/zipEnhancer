@@ -4,10 +4,10 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     ports:
-      - "60000:60000"
+      - "8765:8765"
     environment:
       - HOST=0.0.0.0
-      - PORT=60000
+      - PORT=8765
       - LOG_LEVEL=INFO
     deploy:
       resources:
