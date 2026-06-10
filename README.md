@@ -304,7 +304,6 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 ├── app.py                 # FastAPI 服务主程序
 ├── log.py                 # 日志管理模块
 ├── API.md                 # API 接口文档（含 curl 测试示例）
-├── pyproject.toml          # Python 包配置
 ├── zipenhancer/           # 降噪核心包
 │   ├── __init__.py
 │   ├── codec.py           # 音频编码模块（WAV/FLAC/MP3/OGG）
