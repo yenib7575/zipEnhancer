@@ -336,13 +336,9 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │   │       └── zipformer.py
 │   └── configs/
 │       └── configuration.json
-├── demo/
+├── docs/
 │   ├── index.html           # GitHub Pages 降噪对比页面
-│   ├── audio/               # 演示音频（原始 WAV）
-│   └── mp3_audio/           # 演示音频（GitHub Pages 用 MP4）
-├── .github/
-│   └── workflows/
-│       └── pages.yml        # GitHub Pages 部署配置
+│   └── mp3_audio/           # GitHub Pages 播放用 MP4 音频
 ├── tests/                 # 测试
 │   ├── conftest.py
 │   ├── test_codec.py
