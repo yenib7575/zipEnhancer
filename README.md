@@ -45,8 +45,8 @@
 
 | 样本 | 原始带噪 | 降噪后 |
 |------|---------|--------|
-| 样本 1 | <audio controls src="demo/audio/speech_with_noise.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="demo/audio/speech_with_noise_denoised.wav">你的浏览器不支持 audio 标签</audio> |
-| 样本 2 | <audio controls src="demo/audio/speech_with_noise1.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="demo/audio/speech_with_noise1_denoised.wav">你的浏览器不支持 audio 标签</audio> |
+| 样本 1 | <audio controls src="https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise_denoised.wav">你的浏览器不支持 audio 标签</audio> |
+| 样本 2 | <audio controls src="https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise1.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise1_denoised.wav">你的浏览器不支持 audio 标签</audio> |
 
 > 测试音频来自 [ModelScope 官方 demo](https://www.modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base/summary)。
 
