@@ -15,7 +15,7 @@
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10-blue" alt="Python 3.10"></a>
   <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.115+-teal" alt="FastAPI"></a>
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.0+-ee4c2c" alt="PyTorch"></a>
-  <a href="https://github.com/jiuhua/zipEnhancer/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
+  <a href="https://github.com/gyj1201/zipEnhancer/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
   <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-支持-2496ed" alt="Docker"></a>
   <a href="https://modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base"><img src="https://img.shields.io/badge/ModelScope-达摩院-6240ff" alt="ModelScope"></a>
 </p>
@@ -45,8 +45,8 @@
 
 | 样本 | 原始带噪 | 降噪后 |
 |------|---------|--------|
-| 样本 1 | [▶ 播放](https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise.wav) | [▶ 播放](https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise_denoised.wav) |
-| 样本 2 | [▶ 播放](https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise1.wav) | [▶ 播放](https://raw.githubusercontent.com/jiuhua/zipEnhancer/master/demo/audio/speech_with_noise1_denoised.wav) |
+| 样本 1 | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise.mp4) | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise_denoised.mp4) |
+| 样本 2 | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise1.mp4) | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise1_denoised.mp4) |
 
 > 测试音频来自 [ModelScope 官方 demo](https://www.modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base/summary)。
 
@@ -335,7 +335,8 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │   └── configs/
 │       └── configuration.json
 ├── demo/
-│   └── audio/             # 演示音频（原始带噪 + 降噪后）
+│   ├── audio/             # 演示音频（原始 WAV）
+│   └── mp3_audio/         # 演示音频（GitHub 播放用 MP4）
 ├── tests/                 # 测试
 │   ├── conftest.py
 │   ├── test_codec.py
