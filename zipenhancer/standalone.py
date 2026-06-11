@@ -45,6 +45,7 @@ class ZipEnhancerStandalone:
     def __init__(self, model_name="iic/speech_zipenhancer_ans_multiloss_16k_base"):
         self.model_name = model_name
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.strength = 1.0
         self._load_model()
 
     def _load_model(self):
@@ -121,7 +122,8 @@ class ZipEnhancerStandalone:
                 pos = 0
                 while pos + window <= t:
                     seg_out = self.decorator.forward(
-                        dict(noisy=input_tensor[:, pos:pos + window])
+                        dict(noisy=input_tensor[:, pos:pos + window]),
+                        strength=self.strength,
                     )['wav_l2'][0].cpu().numpy()
 
                     if pos == 0:
@@ -136,14 +138,17 @@ class ZipEnhancerStandalone:
                 # 最后一段
                 if pos < t:
                     seg_out = self.decorator.forward(
-                        dict(noisy=input_tensor[:, t - window:])
+                        dict(noisy=input_tensor[:, t - window:]),
+                        strength=self.strength,
                     )['wav_l2'][0].cpu().numpy()
                     outputs[t - first_half:] = seg_out[-first_half:]
 
                 denoised = outputs[:nsamples].astype(np.float32)
             else:
                 denoised = self.decorator.forward(
-                    dict(noisy=input_tensor))['wav_l2'][0].cpu().numpy()[:nsamples]
+                    dict(noisy=input_tensor),
+                    strength=self.strength,
+                )['wav_l2'][0].cpu().numpy()[:nsamples]
 
         proc_time = time.time() - start
 

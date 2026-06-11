@@ -41,13 +41,19 @@ class ZipenhancerDecorator:
                 self.model.load_state_dict(checkpoint['generator'])
                 # print(checkpoint['generator'].keys())
 
-    def forward(self, inputs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+    def forward(self, inputs: Dict[str, torch.Tensor],
+                strength: float = 1.0) -> Dict[str, torch.Tensor]:
         n_fft = 400
         hop_size = 100
         win_size = 400
         noisy_wav = inputs['noisy']
         # 确保 STFT/iSTFT 用 float32（cuFFT 不支持半精度）
         noisy_wav = noisy_wav.float()
+
+        # strength=0: bit-exact 原始信号，跳过整个处理链路
+        if strength <= 0.0:
+            return {'wav_l2': noisy_wav}
+
         norm_factor = torch.sqrt(noisy_wav.shape[1]
                                  / torch.sum(noisy_wav ** 2.0))
         noisy_audio = (noisy_wav * norm_factor)
@@ -64,6 +70,18 @@ class ZipenhancerDecorator:
         amp_g, pha_g, com_g, _, others = self.model.forward(
             mag.to(model_dtype), pha.to(model_dtype)
         )
+
+        # 0 < strength < 1: 频域掩码指数控制
+        if strength < 1.0:
+            # 反幅度压缩到线性域，提取 mask ratio
+            mag_linear = mag.float() ** (1.0 / 0.3)
+            amp_g_linear = amp_g.float() ** (1.0 / 0.3)
+            mask = amp_g_linear / (mag_linear + 1e-8)
+            mask = mask.clamp(0.0, 1.0)
+            # 强度控制核心：mask ^ strength，保持相位不变
+            output_linear = mag_linear * (mask ** strength)
+            amp_g = (output_linear ** 0.3).to(model_dtype)
+
         # 模型输出转回 float32 再做 iSTFT
         wav = mag_pha_istft(
             amp_g.float(),

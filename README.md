@@ -39,6 +39,17 @@
 
 无需 ModelScope pipeline 黑盒，一行命令启动服务，适合集成到语音处理流程、会议录音后处理、音频预处理管道等场景。
 
+## 效果演示
+
+两个测试样本的降噪前后对比（默认模型，全力降噪）：
+
+| 样本 | 原始带噪 | 降噪后 |
+|------|---------|--------|
+| 样本 1 | <audio controls src="demo/audio/speech_with_noise.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="demo/audio/speech_with_noise_denoised.wav">你的浏览器不支持 audio 标签</audio> |
+| 样本 2 | <audio controls src="demo/audio/speech_with_noise1.wav">你的浏览器不支持 audio 标签</audio> | <audio controls src="demo/audio/speech_with_noise1_denoised.wav">你的浏览器不支持 audio 标签</audio> |
+
+> 测试音频来自 [ModelScope 官方 demo](https://www.modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base/summary)。
+
 ## 快速开始
 
 ### 方式一：手动部署
@@ -123,7 +134,8 @@ curl -X POST http://127.0.0.1:8765/denoise ^
   -F "file=@input.wav" ^
   -F "output_dir=./output" ^
   -F "output_format=mp3" ^
-  -F "bitrate=192k"
+  -F "bitrate=192k" ^
+  -F "strength=0.7"
 ```
 
 **参数说明：**
@@ -138,6 +150,7 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 | `output_format` | 否 | 输出格式: wav / flac / mp3 / ogg（默认 wav） |
 | `bitrate` | 否 | 比特率，仅 mp3/ogg，如 "192k" |
 | `compression_level` | 否 | 压缩级别，仅 flac (0-8) |
+| `strength` | 否 | 降噪强度 0.0~1.0（默认 1.0=全力降噪） |
 
 **返回结果：**
 
@@ -154,7 +167,8 @@ curl -X POST http://127.0.0.1:8765/denoise ^
     "compression": null,
     "processing_time": "0.62s",
     "real_time_factor": "22.0x",
-    "model": "iic/speech_zipenhancer_ans_multiloss_16k_base"
+    "model": "iic/speech_zipenhancer_ans_multiloss_16k_base",
+    "strength": 1.0
   }
 }
 ```
@@ -183,6 +197,7 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
 | `output_format` | 否 | 输出格式: wav / flac / mp3 / ogg（默认 wav） |
 | `bitrate` | 否 | 比特率，仅 mp3/ogg，如 "192k" |
 | `compression_level` | 否 | 压缩级别，仅 flac (0-8) |
+| `strength` | 否 | 降噪强度 0.0~1.0（默认 1.0=全力降噪） |
 
 **返回结果：**
 
@@ -198,6 +213,7 @@ curl -X POST http://127.0.0.1:8765/denoise/batch ^
     "failed": 0,
     "total_time": "5.23s",
     "model": "iic/speech_zipenhancer_ans_multiloss_16k_base",
+    "strength": 1.0,
     "output_format": "flac",
     "results": [
       {
@@ -271,7 +287,7 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 - [x] Docker 一键部署（多阶段构建、GPU 直通、健康检查、优雅关闭）
 - [x] 输出格式选择（WAV / MP3 / FLAC / OGG，编码参数可配）
 - [ ] 输入音频信息预览（波形峰值、LUFS 响度、削波检测、完整性校验）
-- [ ] 降噪强度控制（频域 Dry/Wet Mix，0~100% 可调）
+- [x] 降噪强度控制（频域掩码指数，0~100% 可调）  论文参考：DeepFilterNet
 
 ### P1 — 中期（4-6 个月）
 - [ ] Noise Gate（Attack / Release / Hold / Hysteresis / Look-ahead）
@@ -318,6 +334,8 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │   │       └── zipformer.py
 │   └── configs/
 │       └── configuration.json
+├── demo/
+│   └── audio/             # 演示音频（原始带噪 + 降噪后）
 ├── tests/                 # 测试
 │   ├── conftest.py
 │   ├── test_codec.py

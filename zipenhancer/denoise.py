@@ -79,6 +79,7 @@ def denoise(
     model: str = MODEL_ZIPENHANCER,
     normalize: bool = True,
     target_sr: int = 0,
+    strength: float = 1.0,
 ) -> Tuple[np.ndarray, float, float]:
     """ 降噪
 
@@ -88,11 +89,15 @@ def denoise(
         model (str, optional): 模型名称. Defaults to MODEL_ZIPENHANCER.
         normalize (bool, optional): 是否音量归一化. Defaults to True.
         target_sr (int, optional): 目标采样率. Defaults to 0.
+        strength (float, optional): 降噪强度 0.0~1.0. Defaults to 1.0.
 
     Returns:
         Tuple[np.ndarray, float, float]: (降噪后音频, 处理时间, 原始音频时长)
     """
     ensure_model(model)
+    # 设置降噪强度
+    if hasattr(_model_pipeline, 'strength'):
+        _model_pipeline.strength = max(0.0, min(1.0, strength))
 
     orig_channels = audio.shape[0] if audio.ndim > 1 else 1
     output_sr = target_sr if target_sr > 0 else sample_rate

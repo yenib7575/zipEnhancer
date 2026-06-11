@@ -92,6 +92,7 @@ curl -X POST http://localhost:8765/denoise \
 | `output_format` | 否 | str | 输出格式: wav/flac/mp3/ogg（默认 wav） |
 | `bitrate` | 否 | str | 比特率，仅 mp3/ogg，如 "192k" |
 | `compression_level` | 否 | int | 压缩级别，仅 flac (0-8) |
+| `strength` | 否 | float | 降噪强度 0.0~1.0（默认 1.0=全力降噪） |
 
 ### 各格式测试示例
 
@@ -148,6 +149,31 @@ curl -X POST http://localhost:8765/denoise \
   -F "output_dir=./output" \
   -F "output_format=mp3" \
   -F "bitrate=192k"
+
+# 降噪强度测试（从无到全力，逐步对比）
+curl -X POST http://localhost:8765/denoise \
+  -F "file=@tests/audio/test_mono.wav" \
+  -F "output_dir=./output" \
+  -F "strength=0" \
+  -F "normalize=false"
+
+curl -X POST http://localhost:8765/denoise \
+  -F "file=@tests/audio/test_mono.wav" \
+  -F "output_dir=./output" \
+  -F "strength=0.3" \
+  -F "normalize=false"
+
+curl -X POST http://localhost:8765/denoise \
+  -F "file=@tests/audio/test_mono.wav" \
+  -F "output_dir=./output" \
+  -F "strength=0.7" \
+  -F "normalize=false"
+
+curl -X POST http://localhost:8765/denoise \
+  -F "file=@tests/audio/test_mono.wav" \
+  -F "output_dir=./output" \
+  -F "strength=1.0" \
+  -F "normalize=false"
 ```
 
 ### 响应
@@ -165,7 +191,8 @@ curl -X POST http://localhost:8765/denoise \
     "compression": null,
     "processing_time": "0.62s",
     "real_time_factor": "22.0x",
-    "model": "iic/speech_zipenhancer_ans_multiloss_16k_base"
+    "model": "iic/speech_zipenhancer_ans_multiloss_16k_base",
+    "strength": 1.0
   }
 }
 ```
@@ -206,6 +233,7 @@ curl -X POST http://localhost:8765/denoise/batch \
 | `output_format` | 否 | str | 输出格式: wav/flac/mp3/ogg（默认 wav） |
 | `bitrate` | 否 | str | 比特率，仅 mp3/ogg |
 | `compression_level` | 否 | int | 压缩级别，仅 flac (0-8) |
+| `strength` | 否 | float | 降噪强度 0.0~1.0（默认 1.0） |
 
 ### 批量测试示例
 
@@ -223,6 +251,14 @@ curl -X POST http://localhost:8765/denoise/batch \
   -F "output_dir=./output" \
   -F "output_format=flac" \
   -F "compression_level=8"
+
+# 批量降噪 + 强度控制
+curl -X POST http://localhost:8765/denoise/batch \
+  -F "input_dir=./tests/audio" \
+  -F "output_dir=./output" \
+  -F "output_format=mp3" \
+  -F "bitrate=192k" \
+  -F "strength=0.5"
 ```
 
 ### 响应
@@ -239,6 +275,7 @@ curl -X POST http://localhost:8765/denoise/batch \
     "failed": 0,
     "total_time": "1.85s",
     "model": "iic/speech_zipenhancer_ans_multiloss_16k_base",
+    "strength": 1.0,
     "output_format": "mp3",
     "results": [
       {

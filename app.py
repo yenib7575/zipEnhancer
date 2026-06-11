@@ -69,6 +69,7 @@ def _process_file(
     output_format: str = "wav",
     bitrate: str = None,
     compression_level: int = None,
+    strength: float = 1.0,
 ) -> tuple:
     """处理单个音频文件，返回 (耗时, 时长, 采样率, 格式信息)"""
     if output_format not in FORMATS:
@@ -97,6 +98,7 @@ def _process_file(
         model=model,
         normalize=normalize,
         target_sr=output_sr,
+        strength=strength,
     )
 
     # 编码输出
@@ -129,6 +131,7 @@ async def denoise(
     output_format: str = Form("wav", description="输出格式: wav/flac/mp3/ogg"),
     bitrate: str = Form(None, description="比特率 (mp3/ogg)，如 192k"),
     compression_level: int = Form(None, ge=0, le=8, description="压缩级别 (flac 0-8)"),
+    strength: float = Form(1.0, ge=0.0, le=1.0, description="降噪强度 (0.0~1.0, 1.0=全力降噪)"),
 ):
     """上传单个音频 → 降噪 → 保存 → 返回 JSON"""
     if not file.filename:
@@ -149,10 +152,10 @@ async def denoise(
         in_path = tmp_in.name
 
     try:
-        logger.info(f"接收文件: {file.filename} ({len(content)} bytes) [format={output_format}]")
+        logger.info(f"接收文件: {file.filename} ({len(content)} bytes) [format={output_format}, strength={strength}]")
         proc_time, duration, output_sr, fmt_info = _process_file(
             in_path, output_path, model, normalize, target_sr,
-            output_format, bitrate, compression_level,
+            output_format, bitrate, compression_level, strength,
         )
         logger.info(f"降噪完成: {proc_time:.2f}s (x{duration/proc_time:.1f} 实时比)")
     except HTTPException:
@@ -176,6 +179,7 @@ async def denoise(
             "processing_time": f"{proc_time:.2f}s",
             "real_time_factor": f"{duration/proc_time:.1f}x",
             "model": model,
+            "strength": strength,
         },
     }
 
@@ -190,6 +194,7 @@ async def denoise_batch(
     output_format: str = Form("wav", description="输出格式: wav/flac/mp3/ogg"),
     bitrate: str = Form(None, description="比特率 (mp3/ogg)，如 192k"),
     compression_level: int = Form(None, ge=0, le=8, description="压缩级别 (flac 0-8)"),
+    strength: float = Form(1.0, ge=0.0, le=1.0, description="降噪强度 (0.0~1.0, 1.0=全力降噪)"),
 ):
     """批量降噪：扫描输入文件夹所有音频，逐个处理"""
     if not os.path.isdir(input_dir):
@@ -209,7 +214,7 @@ async def denoise_batch(
         raise HTTPException(400, f"输入文件夹中没有找到音频文件: {input_dir}")
 
     ext = FORMATS[output_format].ext
-    logger.info(f"批量降噪: {input_dir} → {output_dir}，共 {len(files)} 个文件 [format={output_format}]")
+    logger.info(f"批量降噪: {input_dir} → {output_dir}，共 {len(files)} 个文件 [format={output_format}, strength={strength}]")
     os.makedirs(output_dir, exist_ok=True)
 
     results = []
@@ -226,7 +231,7 @@ async def denoise_batch(
         try:
             proc_time, duration, output_sr, fmt_info = _process_file(
                 in_path, out_path, model, normalize, target_sr,
-                output_format, bitrate, compression_level,
+                output_format, bitrate, compression_level, strength,
             )
             results.append({
                 "filename": filename,
@@ -238,6 +243,7 @@ async def denoise_batch(
                 "compression": fmt_info.get("compression"),
                 "processing_time": f"{proc_time:.2f}s",
                 "real_time_factor": f"{duration/proc_time:.1f}x",
+                "strength": strength,
                 "status": "success",
             })
             success += 1
@@ -263,6 +269,7 @@ async def denoise_batch(
             "failed": failed,
             "total_time": f"{total_time:.2f}s",
             "model": model,
+            "strength": strength,
             "output_format": output_format,
             "results": results,
         },
