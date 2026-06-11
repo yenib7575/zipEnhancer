@@ -39,6 +39,7 @@
 
 无需 ModelScope pipeline 黑盒，一行命令启动服务，适合集成到语音处理流程、会议录音后处理、音频预处理管道等场景。
 
+<!-- 效果演示暂时注释，后续找到合适的方案再开放
 ## 效果演示
 
 两个测试样本的降噪前后对比（默认模型，全力降噪）：
@@ -49,6 +50,7 @@
 | 样本 2 | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise1.mp4) | [▶ 播放](https://raw.githubusercontent.com/gyj1201/zipEnhancer/master/demo/mp3_audio/speech_with_noise1_denoised.mp4) |
 
 > 测试音频来自 [ModelScope 官方 demo](https://www.modelscope.cn/models/iic/speech_zipenhancer_ans_multiloss_16k_base/summary)。
+-->
 
 ## 快速开始
 
