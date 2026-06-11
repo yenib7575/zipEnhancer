@@ -337,8 +337,12 @@ curl -X POST http://127.0.0.1:8765/denoise ^
 │   └── configs/
 │       └── configuration.json
 ├── demo/
-│   ├── audio/             # 演示音频（原始 WAV）
-│   └── mp3_audio/         # 演示音频（GitHub 播放用 MP4）
+│   ├── index.html           # GitHub Pages 降噪对比页面
+│   ├── audio/               # 演示音频（原始 WAV）
+│   └── mp3_audio/           # 演示音频（GitHub Pages 用 MP4）
+├── .github/
+│   └── workflows/
+│       └── pages.yml        # GitHub Pages 部署配置
 ├── tests/                 # 测试
 │   ├── conftest.py
 │   ├── test_codec.py
